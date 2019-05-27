@@ -801,16 +801,3 @@ Some [markdown parsers][remarkable] also support inline footnotes. Inline footno
 
 <br>
 <br>
-
-## Additional Information
-
-### What is markdown?
-
-> Markdown is "a plain text format for writing structured documents, based on formatting conventions from email and usenet" -- [CommonMark][]
-
-Sites like GitHub and Stackoverflow have popularized the use markdown as a plain-text alternative to traditional text editors, for writing things like documentation and comments. 
-
-### Other Resources
-
-- [We've been trained to make paper](https://ben.balter.com/2012/10/19/we-ve-been-trained-to-make-paper/) - A great blog post about why markdown frees us from the shackles of proprietary formats imposed by bloated word processors, such as Microsoft Word.
-- [CommonMark](https://commonmark.org/) - "A strongly defined, highly compatible specification of Markdown"
