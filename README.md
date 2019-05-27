@@ -814,15 +814,3 @@ Sites like GitHub and Stackoverflow have popularized the use markdown as a plain
 
 - [We've been trained to make paper](https://ben.balter.com/2012/10/19/we-ve-been-trained-to-make-paper/) - A great blog post about why markdown frees us from the shackles of proprietary formats imposed by bloated word processors, such as Microsoft Word.
 - [CommonMark](https://commonmark.org/) - "A strongly defined, highly compatible specification of Markdown"
-
-### Contributing
-
-All contributions are welcome!
-
-Please let me know if you find typos, grammar or spelling mistakes, or have a suggestion for improving the cheatsheet (since GitHub does not send notifications for gists, it might be better to contact me on twitter, at [@jonschlinkert](https://twitter.com/jonschlinkert)).
-
-Thanks for reading!
-
-
-[remarkable]: https://github.com/jonschlinkert/remarkable
-[commonmark]: https://commonmark.org/
