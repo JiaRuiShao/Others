@@ -66,6 +66,18 @@ def read_paths_from_file(file_path: str) -> list[str]:
         return [line.strip() for line in f if line.strip()]
 
 
+def read_paths_from_json(json_file: str) -> list[str]:
+    """Read paths from a JSON file in Dropbox batch delete payload format.
+
+    Accepts: {"entries": [{"path": "id:xxx"}, ...]}
+    """
+    import json
+    with open(json_file) as f:
+        data = json.load(f)
+    entries = data.get("entries", [])
+    return [e["path"] for e in entries if "path" in e]
+
+
 def delete_batch(token: str, paths: list[str], dry_run: bool) -> int:
     """Delete files in batches of up to BATCH_SIZE. Returns total deleted count."""
     headers = {
@@ -150,17 +162,25 @@ def main():
         help="Text file with one Dropbox path per line to delete",
     )
     parser.add_argument(
+        "--json",
+        dest="json_payload",
+        help='JSON file in Dropbox batch delete format: {"entries":[{"path":"id:xxx"},...]}',
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="List files that would be deleted without actually deleting",
     )
     args = parser.parse_args()
 
-    if not args.folder and not args.file_list:
-        print("Error: provide --folder or --file-list")
+    if not args.folder and not args.file_list and not args.json_payload:
+        print("Error: provide --folder, --file-list, or --json")
         sys.exit(1)
 
-    if args.file_list:
+    if args.json_payload:
+        paths = read_paths_from_json(args.json_payload)
+        print(f"Loaded {len(paths)} paths from {args.json_payload}")
+    elif args.file_list:
         paths = read_paths_from_file(args.file_list)
         print(f"Loaded {len(paths)} paths from {args.file_list}")
     else:
