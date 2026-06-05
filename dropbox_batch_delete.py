@@ -27,7 +27,11 @@ def list_photos(token: str, folder: str, extensions: list[str]) -> list[str]:
     paths = []
     cursor = None
 
-    print(f"Listing files in '{folder}'...")
+    # Dropbox uses "" for root, not "/"
+    if folder == "/":
+        folder = ""
+
+    print(f"Listing files in '{folder or '/'}' ...")
 
     while True:
         if cursor is None:
@@ -38,6 +42,8 @@ def list_photos(token: str, folder: str, extensions: list[str]) -> list[str]:
             data = {"cursor": cursor}
 
         resp = requests.post(url, headers=headers, json=data)
+        if not resp.ok:
+            print(f"API error {resp.status_code}: {resp.text}")
         resp.raise_for_status()
         result = resp.json()
 
