@@ -105,6 +105,8 @@ def delete_batch(token: str, paths: list[str], dry_run: bool) -> int:
             headers=headers,
             json={"entries": entries},
         )
+        if not resp.ok:
+            print(f"API error {resp.status_code}: {resp.text}")
         resp.raise_for_status()
         result = resp.json()
 
