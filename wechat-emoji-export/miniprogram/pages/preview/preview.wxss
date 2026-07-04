@@ -1,0 +1,48 @@
+.page {
+  padding: 24rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.img-wrap {
+  text-align: center;
+}
+
+.big-img {
+  width: 100%;
+  height: 640rpx;
+  /* 棋盘格底色，方便看出原图透明区域已填白 */
+  background: #fafafa;
+}
+
+.img-meta {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #e64340;
+  border: 2rpx solid #e64340;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+}
+
+.hint {
+  margin-top: 24rpx;
+  font-size: 24rpx;
+  color: #888;
+  text-align: center;
+}

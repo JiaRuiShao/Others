@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>表情包转JPG - PC版</title>
+<style>
+  :root {
+    --brand: #07c160;
+    --bg: #f7f7f7;
+    --card: #ffffff;
+    --text: #333;
+    --muted: #888;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1b1b;
+      --card: #262626;
+      --text: #eee;
+      --muted: #999;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+  .container { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 24px; margin-bottom: 8px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.7; }
+
+  .dropzone {
+    background: var(--card);
+    border: 2px dashed var(--brand);
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dropzone.dragover { background: rgba(7, 193, 96, 0.08); }
+  .dropzone p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .dropzone .main-text { color: var(--text); font-size: 16px; font-weight: 600; }
+  #fileInput { display: none; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0 12px;
+    flex-wrap: wrap;
+  }
+  .toolbar .count { color: var(--muted); font-size: 14px; flex: 1; }
+  button {
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button.plain {
+    background: transparent;
+    color: var(--brand);
+    border: 1px solid var(--brand);
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .item {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+  .item img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background:
+      repeating-conic-gradient(#e8e8e8 0% 25%, transparent 0% 50%)
+      50% / 20px 20px;
+  }
+  .item .info { padding: 10px 12px; }
+  .item .name {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 8px;
+  }
+  .item a {
+    display: block;
+    text-align: center;
+    background: var(--brand);
+    color: #fff;
+    border-radius: 6px;
+    padding: 6px 0;
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .footer { margin-top: 32px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>表情包转 JPG（PC 版）</h1>
+  <p class="subtitle">
+    把微信表情导出为 JPG 并下载到电脑。使用方法：在微信 PC 版聊天中右键表情 →「另存为…」保存原文件（通常是 PNG/GIF），
+    再把文件拖到下方区域即可批量转换。透明背景会自动填充为白色；GIF 动图仅转换第一帧。
+    所有转换均在浏览器本地完成，图片不会上传到任何服务器。
+  </p>
+
+  <div class="dropzone" id="dropzone">
+    <div class="main-text">拖拽图片到这里，或点击选择文件</div>
+    <p>支持 PNG / GIF / WebP / BMP 等格式，可一次选择多张</p>
+    <input type="file" id="fileInput" accept="image/*" multiple />
+  </div>
+
+  <div class="toolbar" id="toolbar" hidden>
+    <span class="count" id="count"></span>
+    <button id="downloadAll">全部下载</button>
+    <button class="plain" id="clearAll">清空</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <p class="footer">
+    提示：JPG 格式不支持透明与动画。若需要保留透明背景请直接使用原 PNG 文件；
+    若需要保留动画请保存原 GIF 文件。本工具适合需要统一 JPG 格式的场景（如上传到仅支持 JPG 的平台）。
+  </p>
+</div>
+
+<script>
+(function () {
+  var MAX_EDGE = 1280;   // 最长边超出则等比缩小
+  var QUALITY = 0.92;    // JPG 质量
+  var items = [];        // { name, blobUrl }
+
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var grid = document.getElementById('grid');
+  var toolbar = document.getElementById('toolbar');
+  var countEl = document.getElementById('count');
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    handleFiles(fileInput.files);
+    fileInput.value = '';
+  });
+
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    dropzone.addEventListener(ev, function (e) {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dropzone.addEventListener(ev, function (e) {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+    });
+  });
+  dropzone.addEventListener('drop', function (e) {
+    handleFiles(e.dataTransfer.files);
+  });
+
+  function handleFiles(fileList) {
+    Array.prototype.forEach.call(fileList, function (file) {
+      if (!file.type || file.type.indexOf('image/') !== 0) return;
+      convertToJpg(file);
+    });
+  }
+
+  function convertToJpg(file) {
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function () {
+      var w = img.naturalWidth;
+      var h = img.naturalHeight;
+      var longEdge = Math.max(w, h);
+      if (longEdge > MAX_EDGE) {
+        var ratio = MAX_EDGE / longEdge;
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      // JPG 无透明通道，先铺白底
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob(function (blob) {
+        if (!blob) return;
+        var name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+        items.push({ name: name, blobUrl: URL.createObjectURL(blob) });
+        render();
+      }, 'image/jpeg', QUALITY);
+    };
+    img.onerror = function () {
+      URL.revokeObjectURL(url);
+      alert('无法读取图片：' + file.name);
+    };
+    img.src = url;
+  }
+
+  function render() {
+    toolbar.hidden = items.length === 0;
+    countEl.textContent = '已转换 ' + items.length + ' 张';
+    grid.innerHTML = '';
+    items.forEach(function (item) {
+      var div = document.createElement('div');
+      div.className = 'item';
+
+      var img = document.createElement('img');
+      img.src = item.blobUrl;
+      img.alt = item.name;
+
+      var info = document.createElement('div');
+      info.className = 'info';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'name';
+      nameEl.title = item.name;
+      nameEl.textContent = item.name;
+
+      var link = document.createElement('a');
+      link.href = item.blobUrl;
+      link.download = item.name;
+      link.textContent = '下载 JPG';
+
+      info.appendChild(nameEl);
+      info.appendChild(link);
+      div.appendChild(img);
+      div.appendChild(info);
+      grid.appendChild(div);
+    });
+  }
+
+  document.getElementById('downloadAll').addEventListener('click', function () {
+    // 逐个触发下载，间隔避免浏览器拦截
+    items.forEach(function (item, i) {
+      setTimeout(function () {
+        var a = document.createElement('a');
+        a.href = item.blobUrl;
+        a.download = item.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }, i * 300);
+    });
+  });
+
+  document.getElementById('clearAll').addEventListener('click', function () {
+    items.forEach(function (item) { URL.revokeObjectURL(item.blobUrl); });
+    items = [];
+    render();
+  });
+})();
+</script>
+</body>
+</html>
