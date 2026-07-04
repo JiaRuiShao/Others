@@ -1,0 +1,27 @@
+/* app.wxss 全局样式 */
+page {
+  background: #f7f7f7;
+  font-size: 28rpx;
+  color: #333;
+  --brand: #07c160;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+}
+
+.btn-primary[disabled] {
+  background: #9be6bf;
+  color: #fff;
+}
+
+.btn-plain {
+  background: #fff;
+  color: var(--brand);
+  border: 2rpx solid var(--brand);
+  border-radius: 12rpx;
+  font-size: 32rpx;
+}

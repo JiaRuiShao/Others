@@ -1,0 +1,21 @@
+<view class="page" wx:if="{{item}}">
+  <view class="img-wrap card" bindtap="fullscreen">
+    <image class="big-img" src="{{item.jpgPath}}" mode="aspectFit" />
+    <view class="img-meta">{{item.width}} × {{item.height}} · JPG · 点击全屏预览</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" bindtap="save">
+      {{isPC ? '保存到电脑' : '保存到手机相册'}}
+    </button>
+    <button class="btn-plain" bindtap="fullscreen">全屏预览（长按可转发）</button>
+    <button class="btn-danger" bindtap="remove">从列表中删除</button>
+  </view>
+
+  <view class="hint" wx:if="{{isPC}}">
+    PC 端小提示：全屏预览后可直接右键「另存为」保存到电脑任意位置。
+  </view>
+  <view class="hint" wx:else>
+    小提示：全屏预览后长按图片，也可以直接发送给朋友或收藏。
+  </view>
+</view>

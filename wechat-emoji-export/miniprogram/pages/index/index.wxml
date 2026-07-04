@@ -1,0 +1,54 @@
+<view class="page">
+
+  <!-- 使用说明 -->
+  <view class="tips card">
+    <view class="tips-title">使用方法</view>
+    <view class="tips-line">1. 把想导出的表情发送到任意聊天（推荐「文件传输助手」）</view>
+    <view class="tips-line">2. 点击下方「从聊天中选择」，找到该聊天并选中表情</view>
+    <view class="tips-line">3. 自动转换为 JPG 后，点击图片预览并保存</view>
+    <view class="tips-note">注：动图表情仅能导出第一帧；透明背景将填充为白色</view>
+  </view>
+
+  <!-- 选择入口 -->
+  <view class="actions">
+    <button class="btn-primary" bindtap="chooseFromChat" disabled="{{converting}}">
+      从聊天中选择表情
+    </button>
+    <button class="btn-plain" bindtap="chooseFromAlbum" disabled="{{converting}}">
+      从相册选择图片
+    </button>
+  </view>
+
+  <!-- 转换结果 -->
+  <view class="result card" wx:if="{{list.length > 0}}">
+    <view class="result-header">
+      <text class="result-title">已转换（{{list.length}}）</text>
+      <text class="result-clear" bindtap="clearAll">清空</text>
+    </view>
+    <view class="grid">
+      <view
+        class="grid-item"
+        wx:for="{{list}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="openPreview"
+      >
+        <image class="grid-img" src="{{item.jpgPath}}" mode="aspectFill" />
+        <view class="grid-tag">JPG</view>
+      </view>
+    </view>
+    <button class="btn-primary save-all" bindtap="saveAll">
+      {{isPC ? '全部保存到本地' : '全部保存到相册'}}
+    </button>
+    <view class="pc-tip" wx:if="{{isPC}}">
+      PC 端提示：也可在预览页右键图片另存为，或保存后在「微信收藏」中查看
+    </view>
+  </view>
+
+  <view class="empty" wx:else>
+    <text>还没有转换的表情，先从上方选择吧～</text>
+  </view>
+
+  <!-- 隐藏的转换画布（尺寸由 JS 动态设置，移出可视区域即可） -->
+  <canvas type="2d" id="convertCanvas" class="hidden-canvas"></canvas>
+</view>
